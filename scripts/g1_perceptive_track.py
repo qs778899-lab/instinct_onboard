@@ -34,7 +34,7 @@ Features:
 Command-Line Arguments:
     Required:
         --logdir PATH          Directory containing the trained perceptive tracking agent model
-                              (must contain exported/actor.onnx and exported/0-depth_image.onnx)
+                              (must contain exported/actor.onnx, exported/policy_normalizer.npz and exported/0-depth_image.onnx)
         --motion_dir PATH      Directory containing retargeted motion files (.npz format)
 
     Optional:
@@ -42,12 +42,14 @@ Command-Line Arguments:
         --startup_step_size FLOAT
                               Startup step size for cold start agent (default: 0.2)
         --nodryrun            Disable dry run mode (default: False, runs in dry run mode)
+        注：程序默认是Dry run模式, 正常运行所有逻辑（读取传感器、运行神经网络推理、计算控制指令），但不向机器人电机发送任何实际指令。
         --kpkd_factor FLOAT    KP/KD gain multiplier for cold start agent (default: 2.0)
         --motion_vis           Enable motion visualization by publishing joint states and TF
                               (requires robot_state_publisher for visualization)
         --depth_vis            Enable depth image visualization (publishes to /realsense/depth_image)
         --pointcloud_vis       Enable pointcloud visualization (publishes to /realsense/pointcloud)
         --debug                Enable debug mode with debugpy (listens on 0.0.0.0:6789)
+        注：用于本地电脑远程连接G1主机在IDE中DEBUG模式进行调试。一般情况下不建议使用，真机运行中中断会停止向电机发送指令导致机器人的失控摔倒。
 
 Agent Workflow:
     1. Cold Start Agent (initial state)
@@ -81,6 +83,11 @@ Joystick Controls:
     LEFT:         Load and execute rollVault11 motion sequence
     RIGHT:        Load and execute jumpsit2 motion sequence
     X Button:     Load and execute superheroLanding motion sequence
+
+辅助调试指令：
+    ros2 topic hz /lowstate  # 查看机器人状态发布频率是否正常（应为 200-500Hz）
+    ros2 topic echo /wirelesscontroller # 检查手柄按键是否有反应
+    ros2 run rviz2 rviz2
 
 Example Usage:
     Basic usage with required arguments:
@@ -122,6 +129,18 @@ Notes:
     - Robot configuration: G1_29Dof_TorsoBase (29 degrees of freedom)
     - Joint position protection ratio: 2.0
     - Camera runs in a separate process for better performance
+
+# 自动化启动RealSense相机机制的说明：
+# 1. G1TrackingNode 继承自 UnitreeRsCameraNode。
+# 2. 初始化时，父类利用 pyrealsense2 库在独立进程中启动相机流水线 (Pipeline)。
+# 3. 核心流程如下：
+#    import pyrealsense2 as rs
+#    pipeline = rs.pipeline()
+#    pipeline.start(config)  # 启动硬件流
+#    frames = pipeline.wait_for_frames()  # 获取帧集合
+#    depth = frames.get_depth_frame()  # 提取深度帧
+# 4. 主程序通过共享内存或队列实时获取处理后的 numpy 格式深度图。
+
 """
 
 
@@ -294,6 +313,7 @@ class G1TrackingNode(UnitreeRsCameraNode):
 def main(args):
     rclpy.init()
 
+    # 创建G1TrackingNode实例，初始化RealSense相机
     node = G1TrackingNode(
         rs_resolution=(480, 270),  # (width, height)
         rs_fps=60,
