@@ -75,7 +75,7 @@ Joystick Controls:
     L1 Button:   Switch to parkour agent (from stand)
     Direction Buttons: Switch to parkour agent (from cold start)
 
-Velocity Control (Wireless Controller):
+Velocity Control (Wireless Controller): 摇杆幅度可以控制机器人速度
     Linear velocity is controlled based on forward/backward input with deadband
     Angular velocity is controlled based on left/right rotation input with deadband
     Velocity ranges can be adjusted via command-line arguments
