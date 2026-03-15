@@ -1,0 +1,202 @@
+cd instinct_onboard
+  387  source instinct_venv/bin/activate
+  388  ls
+  389  cd g1_crc
+  390  source instinct_venv/bin/activate
+  391  ls
+  392  deactivate
+  393  cd ..
+  394  rm -rf g1_crc/instinct_venv
+  395  python3 -m venv instinct_venv
+  396  source instinct_venv/bin/activate
+  397  ls
+  398  pip install pybind11
+  399  pip install -e .
+
+  400  pip install --upgrade pip  #这个有问题吗？？？
+
+  401  sudo apt install ros-{ROS_VERSION}-rosbag2-storage-mcap
+  402  ls /opt/ros/
+  403  which ros2
+  404  find /usr/bin /usr/local/bin /opt -name "ros2" 2>/dev/null
+  405  docker ps -a
+  406  docker images
+  407  ls -d ~/unitree*
+  408  ls -d /usr/local/unitree*
+  409  cd 。。
+  410  cd ..
+  411  ls
+  412  cd unified-deploy-kai-0
+  413  ls
+  414  cd unitree_sdk2
+  415  ls
+  416  cd ..
+  417  ks
+  418  ls
+  419  cd instinct_onboard
+  420  sudo apt install ros-foxy-rmw-cyclonedds-cpp
+  421  git clone https://github.com/unitreerobotics/unitree_ros2
+  422  cd unitree_ros2
+  423  sudo apt update
+  424  sudo apt install ros-humble-rmw-cyclonedds-cpp
+  425  sudo apt update && sudo apt install locales
+  426  sudo locale-gen en_US en_US.UTF-8
+  427  sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+  428  export LANG=en_US.UTF-8
+  429  sudo apt install curl gnupg2 lsb-release -y
+  430  sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+  431  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+  432  sudo apt update
+  433  sudo apt install ros-humble-ros-base
+  434  sudo apt install ros-humble-rmw-cyclonedds-cpp
+  435  sudo apt install ros-humble-rosidl-generator-dds-idl
+  436  sudo apt install libyaml-cpp-dev
+  437  ls
+  438  source /opt/ros/humble/setup.bash
+  439  colcon build
+  440  sudo apt install python3-colcon-common-extensions
+  441  source /opt/ros/humble/setup.bash
+  442  colcon build
+  443  pip install empy==3.3.2
+  444  rm -rf build/ install/ log/
+  445  colcon build
+  446  pip install catkin_pkg
+  447  rm -rf build/ install/ log/
+  448  colcon build
+  449  pip install lark setuptools
+  450  colcon build
+  451  ros2 interface list | grep unitree
+  452  source ~/unitree_ros2/setup.sh
+  453  ls
+  454  source ./setup.sh
+  455  ros2 topic list
+  456  source ./setup.sh
+  457  ros2 topic list
+  458  ifconfig
+  459  source /setup.sh
+  460  source ./setup.sh
+  461  ros2 topic list
+  462  cd example
+  463  colcon build
+  464  ls
+  465  ./install/unitree_ros2_example/bin/read_motion_state 
+  466  ls
+  467  /home/unitree/yixuan/instinct_onboard/unitree_ros2/setup.sh
+  468  ls
+  469  cd instinct_onboard
+  470  ls
+  471  cd unitree_ros2
+  472  ./install/unitree_ros2_example/bin/read_motion_state_hg
+  473  ls
+  474  cd example
+  475  ls
+  476  cd install
+  477  ls
+  478  cd unitree_ros2_example
+  479  ls
+  480  cd
+  481  cd bin
+  482  ls
+  483  cd /yixuan/instinct_onboard/unitree_ros2/example/install/unitree_ros2_example
+  484  cd /yixuan/instinct_onboard/unitree_ros2/example/install/unitree_ros2_example/
+  485  cd yixuan/instinct_onboard/unitree_ros2/example/install/unitree_ros2_example/
+  486  ls
+  487  cd bin 
+  488  ls
+  489  ./read_low_state_hg
+  490  cd ..
+  491  source ./install/setup.bash
+  492  ros2 topic list
+  493  ls
+  494  source ./setup.sh
+  495  ./install/unitree_ros2_example/bin/read_low_state_hg
+  496  source instinct_venv/bin/activate
+  497  cd ..
+  498  source instinct_venv/bin/activate
+  499  python3 -c "from unitree_hg.msg import LowCmd; print('unitree_hg messages are installed and accessibl')"
+  500  pip install -e .[all]
+  501  pip install -e .
+  502  sudo apt install ros-{ROS_VERSION}-rosbag2-storage-mcap
+  503  deactivate
+  504  rm -rf instinct_venv
+  505  python3.10 -m venv instinct_venv
+  506  source instinct_venv/bin/activate
+  507  ls
+  508  cd g1_crc
+  509  ls
+  510  pip install pybind11
+  511  sudo apt install ros-{ROS_VERSION}-rosbag2-storage-mcap
+  512  which python
+  513  python version
+  514  python --version
+  515  sudo apt install ros-{ROS_VERSION}-rosbag2-storage-mcap
+  516  sudo apt install ros-humble-rosbag2-storage-mcap
+  517  pip install empy==3.3.2
+  518  pip install catkin_pkg
+  519  pip install lark setuptools
+  520  source /opt/ros/humble/setup.bash
+  521  source ~/yixuan/instinct_onboard/unitree_ros2/install/setup.bash
+  522  source ~/yixuan/instinct_onboard/unitree_ros2/setup.sh
+  523  cd 。。
+  524  cd ..
+  525  ls
+  526  cd unitree_ros2
+  527  ls
+  528  source ./setup.sh
+  529  pip install -e .
+  530  cd ..
+  531  pip install -e .
+  532  pip install --extra-index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/ onnxruntime-gpu
+  533  pip install "numpy<2"
+  534  wget https://pypi.jetson-ai-lab.dev/jp6/cu126/+f/f6e/2baa664069470/onnxruntime_gpu-1.20.2-cp310-cp310-linux_aarch64.whl
+  535  ping -c 1 github.com
+  536  ping -c 1 pypi.org
+  537  ping -c 1 pypi.jetson-ai-lab.dev
+  538  cat /etc/resolv.conf
+  539  FORCE_CPU=1 pip install -e .
+  540  import cv2
+  541  python -c "import cv2; print(cv2.__version__)"
+  542  pip install opencv-python
+  543  pip install "opencv-python<4.9" "numpy==1.24.2"
+  544  source instinct_venv/bin/activate
+  545  pip install PyYAML
+  546  source /opt/ros/humble/setup.bash && python3 -c "import rclpy; import yaml; from geometry_msgs.msg import TransformStamped; print('Success')"
+  547  ls
+  548  cd 。。
+  549  cd ..
+  550  ls
+  551  git@github.com:qs778899-lab/InstinctLab.git
+  552  git clone git@github.com:qs778899-lab/InstinctLab.git
+  553  ls
+  554  cd instinct_onboard
+  555  ls
+  556  ros2 run rviz2 rviz2
+  557  python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/exported_01 --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/50cm_kneeClimbStep/jumpsit2-ziwen-retargeted.npz --depth_vis --pointcloud_vis --motion_vis
+  558  ls
+  559  cd g1_crc
+  560  mkdir build && cd build
+  561  cmake ..
+  562  make
+  563  cd python
+  564  rm -rf build
+  565  mkdir build && cd build
+  566  cmake ..
+  567  make
+  568  ls
+  569  cd yixuan 
+  570  ls
+  571  cd instinct_onboard
+  572  ls
+  573  cd yixuan/
+  574  ls
+  575  cd GR00T-WholeBodyControl/
+  576  ls
+  577  conda deactivate
+  578  cd gear_sonic_deploy/
+  579  ls
+  580  ./deploy.sh real
+  581  . "/home/unitree/.cursor-server/bin/linux-arm64/224838f96445be37e3db643a163a817c15b36060/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh"
+  582  . "/home/unitree/.cursor-server/bin/linux-arm64/618c607a249dd7fd2ffc662c6531143833bebd40/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh"
+  583  ls
+  584  cd instinct_onboard
+  585  history

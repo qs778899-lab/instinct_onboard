@@ -90,6 +90,14 @@ Joystick Controls:
     ros2 run rviz2 rviz2
 
 Example Usage:
+    source /opt/ros/humble/setup.bash
+    source instinct_venv/bin/activate
+    source unitree_ros2/install/setup.bash
+    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260121_085042_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/50cm_kneeClimbStep
+
+    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260121_085042_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/50cm_kneeClimbStep --nodryrun --depth_vis --pointcloud_vis --motion_vis
+
+    
     Basic usage with required arguments:
         python g1_perceptive_track.py --logdir /path/to/tracking/model --motion_dir /path/to/motions
 
