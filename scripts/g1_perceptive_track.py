@@ -11,6 +11,7 @@ from sensor_msgs.msg import JointState
 from tf2_ros import TransformBroadcaster
 
 from instinct_onboard.agents.base import ColdStartAgent
+from instinct_onboard.agents.parkour_agent import ParkourStandAgent
 from instinct_onboard.agents.tracking_agent import PerceptiveTrackerAgent, TrackerAgent
 from instinct_onboard.agents.walk_agent import WalkAgent
 from instinct_onboard.ros_nodes.realsense import UnitreeRsCameraNode
@@ -111,8 +112,12 @@ Example Usage:
     python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260121_085042_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/50cm_kneeClimbStep --nodryrun 
   
     # 加入walk agent model
-    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260121_085042_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/50cm_kneeClimbStep --nodryrun 
+    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260121_085042_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/50cm_kneeClimbStep --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard
   
+    部署注意事项：
+    ROS topic频率不能随意修改，高频会导致机器人高频抖动
+    出现joint max error之类问题，需要将吊龙架调整到合适高度，是机器人的位姿接近目标初始位姿
+
     
     Basic usage with required arguments:
         python g1_perceptive_track.py --logdir /path/to/tracking/model --motion_dir /path/to/motions
@@ -184,7 +189,7 @@ class G1TrackingNode(UnitreeRsCameraNode):
         self.joint_state_publisher = self.create_publisher(JointState, "joint_states", 10)
         self.tf_broadcaster = TransformBroadcaster(self)
         # start the main loop with 20ms duration
-        main_loop_duration = 0.002
+        main_loop_duration = 0.02
         self.get_logger().info(f"Starting main loop with duration: {main_loop_duration} seconds.")
         self.main_loop_timer = self.create_timer(main_loop_duration, self.main_loop_callback)
         if MAIN_LOOP_FREQUENCY_CHECK_INTERVAL > 1:
@@ -238,6 +243,11 @@ class G1TrackingNode(UnitreeRsCameraNode):
         #目前没有传入walk agent的模型文件，暂不考虑
         #! self.current_agent_name = "tracking"却在这个条件里才有
         elif self.current_agent_name == "walk":
+
+            #修改walk
+            if isinstance(self.available_agents[self.current_agent_name], ParkourStandAgent):
+                self.refresh_rs_data()
+
             action, done = self.available_agents[self.current_agent_name].step()
             self.send_action(
                 action,
@@ -358,10 +368,19 @@ def main(args):
         ros_node=node,
     )
     if args.walk_logdir is not None:
-        walk_agent = WalkAgent(
-            logdir=args.walk_logdir,
-            ros_node=node,
-        )
+
+        #修改walk
+        if "stand_onboard" in args.walk_logdir or "parkour" in args.walk_logdir:
+            walk_agent = ParkourStandAgent(
+                logdir=args.walk_logdir,
+                ros_node=node,
+            )
+        else:
+            walk_agent = WalkAgent(
+                logdir=args.walk_logdir,
+                ros_node=node,
+            )
+
         cold_start_agent = ColdStartAgent(
             startup_step_size=args.startup_step_size,
             ros_node=node,

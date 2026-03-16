@@ -224,9 +224,9 @@ class UnitreeNode(RealNode):
             self.get_logger().error("Robot coordinates action contain NaN, Skip sending the action to the robot.")
             return
         
-        print(f"DEBUG: sim_idx 10, real_idx {self.joint_map[10]}, kp: {p_gains[10]:.2f}, q: {target_joint_pos[10]:.4f}")
-        print(f"DEBUG: sim_idx 10, real_idx {self.joint_map[17]}, kp: {p_gains[17]:.2f}, q: {target_joint_pos[10]:.4f}")
-        print(f"DEBUG: sim_idx 24, real_idx {self.joint_map[24]}, kp: {p_gains[10]:.2f}, q: {target_joint_pos[10]:.4f}")
+        # print(f"DEBUG: sim_idx 10, real_idx {self.joint_map[10]}, kp: {p_gains[10]:.2f}, q: {target_joint_pos[10]:.4f}")
+        # print(f"DEBUG: sim_idx 10, real_idx {self.joint_map[17]}, kp: {p_gains[17]:.2f}, q: {target_joint_pos[10]:.4f}")
+        # print(f"DEBUG: sim_idx 24, real_idx {self.joint_map[24]}, kp: {p_gains[10]:.2f}, q: {target_joint_pos[10]:.4f}")
         
         self.low_cmd_publisher.publish(self.low_cmd_buffer)
 
