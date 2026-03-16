@@ -54,7 +54,7 @@ pip install --extra-index-url https://aiinfra.pkgs.visualstudio.com/PublicPackag
     ```bash
     pip install -e .
 
-    # 暂时只装 装 onnxruntime，跳过 onnxruntime-gpu
+    # 可以暂时只装 onnxruntime CPU版本，跳过 onnxruntime-gpu
     FORCE_CPU=1 pip install -e .
 
     ```
