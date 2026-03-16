@@ -290,6 +290,7 @@ class ColdStartAgent(OnboardAgent):
         The desired position is defined in the robot configuration.
         """
         dof_pos_err = self.joint_target_pos - self.ros_node._get_joint_pos_obs()
+        # print(f"self.ros_node.joint_pos_: {self.ros_node._get_joint_pos_obs()}")
         err_large_mask = np.abs(dof_pos_err) > self.startup_step_size
         done = not err_large_mask.any()
         if not done:

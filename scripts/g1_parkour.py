@@ -80,6 +80,19 @@ Velocity Control (Wireless Controller): 摇杆幅度可以控制机器人速度
     Angular velocity is controlled based on left/right rotation input with deadband
     Velocity ranges can be adjusted via command-line arguments
 
+
+unset CYCLONEDDS_URI
+unset ROS_DOMAIN_ID
+unset RMW_IMPLEMENTATION
+source /opt/ros/humble/setup.bash
+source /home/unitree/yixuan/instinct_onboard/unitree_ros2/setup.sh
+source /home/unitree/yixuan/instinct_onboard/unitree_ros2/install/setup.bash
+source /home/unitree/yixuan/instinct_onboard/instinct_venv/bin/activate
+python scripts/g1_parkour.py \
+    --logdir /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/parkour_onboard_preview_stair \
+    --standdir /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard \
+    --nodryrun
+
 Example Usage:
     Basic usage with required arguments:
         python g1_parkour.py \\

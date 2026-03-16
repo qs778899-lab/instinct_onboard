@@ -5,7 +5,8 @@ echo "Setup unitree ros2 environment (Humble)"
 source /opt/ros/humble/setup.bash
 
 # 2. 修正工作空间路径 (使用当前目录的绝对路径)
-source ./install/setup.bash
+# source ./install/setup.bash
+source /home/unitree/yixuan/instinct_onboard/unitree_ros2/install/setup.bash
 
 # 3. 设置 DDS 实现
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
@@ -15,3 +16,4 @@ export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
                             <NetworkInterface name="enP8p1s0" priority="default" multicast="default" />
                         </Interfaces></General></Domain></CycloneDDS>'
+

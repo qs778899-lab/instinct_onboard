@@ -219,7 +219,7 @@ class RealNode(Node):
                 p_gains=p_gains,
                 d_gains=d_gains,
             )
-        self._publish_motor_cmd(target_joint_pos, p_gains=p_gains, d_gains=d_gains)
+        self._publish_motor_cmd(target_joint_pos, p_gains=p_gains, d_gains=d_gains) #给电机发命令
 
     @abstractmethod
     def _publish_motor_cmd(self, target_joint_pos: np.array, p_gains: np.array, d_gains: np.array):
