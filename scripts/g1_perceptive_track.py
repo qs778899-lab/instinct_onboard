@@ -123,8 +123,8 @@ Example Usage:
     # test01: climb
     python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard --depth_vis
   
-    ros2 bag record -o ./rosbag_images/bag_$(date +%Y%m%d_%H%M%S) /debug/depth_image /debug/raw_depth_image /lowstate /lowcmd /wirelesscontroller 
-    python scripts/extract_bag_images.py bag_20260324_204032
+    ros2 bag record -o ./rosbag_images/bag_$(date +%Y%m%d_%H%M%S) /debug/depth_image /debug/raw_depth_image
+    python scripts/extract_bag_images.py bag_20260324_223017
     
     
     
