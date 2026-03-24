@@ -1,0 +1,202 @@
+--- git status ---
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   MOTION_data/test_motion_data_stairs/metadata.yaml
+	modified:   MOTION_data/test_motion_data_stairs/stairs_terrain.stl
+	modified:   instruction.md
+	modified:   scripts/generate_staircase_terrain.py
+	modified:   scripts/instinct_rl/play.py
+	modified:   source/instinctlab/instinctlab/tasks/shadowing/perceptive/perceptive_env_cfg.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	PIM.pdf
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/MOTION_data/test_motion_data_stairs/metadata.yaml b/MOTION_data/test_motion_data_stairs/metadata.yaml
+index 3aad86f..28c2a2a 100644
+--- a/MOTION_data/test_motion_data_stairs/metadata.yaml
++++ b/MOTION_data/test_motion_data_stairs/metadata.yaml
+@@ -2,5 +2,5 @@ motion_files:
+ - motion_file: stairs027_retargeted.npz
+   terrain_id: 0
+ terrains:
+-- terrain_file: stairs_terrain_scale_0.74.stl
++- terrain_file: stairs_terrain.stl
+   terrain_id: 0
+\ No newline at end of file
+diff --git a/MOTION_data/test_motion_data_stairs/stairs_terrain.stl b/MOTION_data/test_motion_data_stairs/stairs_terrain.stl
+index 393f437..bd4711b 100644
+Binary files a/MOTION_data/test_motion_data_stairs/stairs_terrain.stl and b/MOTION_data/test_motion_data_stairs/stairs_terrain.stl differ
+diff --git a/instruction.md b/instruction.md
+index 944a9f4..c57ef0c 100644
+--- a/instruction.md
++++ b/instruction.md
+@@ -247,18 +247,19 @@ Perceptive Shadowing 任务旨在让机器人通过视觉感知（深度图）
+     python scripts/amass_visualize.py --num_envs 1 --motion_path "/home/huangyucheng/桌面/Project Instinct/InstinctLab/MOTION_data/test_motion_data_stairs/" --interactive 
+     11：三级，弯腰。 13：四级，弯腰。15：三级，弯腰。20：四级，弯腰。27: 四级。28：四级。29:四级。31：四级。
+     python scripts/amass_visualize.py --num_envs 1 --motion_path "/home/huangyucheng/桌面/Project Instinct/InstinctLab/MOTION_data/test_motion_data_walk/" --interactive 
+-    # 可视化retargeting数据 （动作和地形模型对齐）
+-    python scripts/instinct_rl/play_vis.py --task=Instinct-Perceptive-Shadowing-G1-Play-v0 --load_run 20260319_115839 --num_envs 1 --freeze_policy --viewer_eye 5.8 3.0 0.2  --viewer_lookat 0.0 0.0 0.5
++    # 可视化retargeting数据 （动作和地形模型对齐， 仍是纯运动学回放）
++    python scripts/instinct_rl/play_vis.py --task=Instinct-Perceptive-Shadowing-G1-Play-v0 --load_run 20260319_115839 --num_envs 1 --freeze_policy --viewer_eye 5.8 0.6 0.2  --viewer_lookat 0.0 0.0 0.5
+ 
+ 
+ 
+ 
+ 
+     # 生成地形阶梯stl文件
+-    python scripts/generate_staircase_terrain.py --output_name stairs_terrain_scale_0.74.stl
++    python scripts/generate_staircase_terrain.py --output_name stairs_terrain.stl
+ 
+     # 训练
+-    python scripts/instinct_rl/train.py --task=Instinct-Perceptive-Shadowing-G1-v0  --headless 'env.scene.motion_reference.motion_buffers.TerrainMotion.motion_start_from_middle_range=[0.0,0.0]' env.scene.motion_reference.motion_buffers.TerrainMotion.fix_origin_index=0 --resume --load_run 20260319_174712 --checkpoint model_46000.pt
++    python scripts/instinct_rl/train.py --task=Instinct-Perceptive-Shadowing-G1-v0  --headless 'env.scene.motion_reference.motion_buffers.TerrainMotion.motion_start_from_middle_range=[0.0,0.0]' env.scene.motion_reference.motion_buffers.TerrainMotion.fix_origin_index=0 
++    --resume --load_run 20260323_ --checkpoint model_65000.pt
+ 
+     tmux new -s train
+     tmux attach -t train
+@@ -282,13 +283,7 @@ Perceptive Shadowing 任务旨在让机器人通过视觉感知（深度图）
+     env.scene.height_scanner.debug_vis=True \
+     env.scene.terrain.debug_vis=True \
+     env.scene.leg_volume_points.debug_vis=True \
+-    agent.policy.init_noise_std=0.0 \
+-    agent.algorithm.entropy_coef=0.0 \
+-    agent.algorithm.clip_min_std=0.0 \
+-    env.scene.height_scanner.debug_vis=True \
+-    --resume \
+-    --load_run 20260319_174712 \
+-    --checkpoint model_46000.pt
++    env.scene.height_scanner.debug_vis=True 
+ 
+ 
+ 
+@@ -388,10 +383,14 @@ Perceptive Shadowing 任务旨在让机器人通过视觉感知（深度图）
+     ##注：修改InstinctLab/source/instinctlab/instinctlab/tasks/shadowing/perceptive/config/g1/perceptive_shadowing_cfg.py的MOTION_FOLDER路径
+     ## climbsit
+     python scripts/instinct_rl/play.py --task=Instinct-Perceptive-Shadowing-G1-Play-v0 --load_run 20260318_231039 --num_envs 1 --checkpoint model_25000.pt
+-    ## climb
+-    python scripts/instinct_rl/play.py --task=Instinct-Perceptive-Shadowing-G1-Play-v0 --load_run 20260319_174712 --num_envs 1 --checkpoint model_46000.pt
+     ## walk
+     python scripts/instinct_rl/play.py --task=Instinct-Perceptive-Shadowing-G1-Play-v0 --load_run 20260321_133120 --num_envs 1  --checkpoint model_9800.pt
++    ## climb
++    python scripts/instinct_rl/play.py --task=Instinct-Perceptive-Shadowing-G1-Play-v0 --load_run 20260319_174712 --num_envs 1 --checkpoint model_46000.pt
++    python scripts/instinct_rl/play.py --task=Instinct-Perceptive-Shadowing-G1-Play-v0 --load_run 20260321_234155 --num_envs 1 --checkpoint model_65000.pt
++    python scripts/instinct_rl/play.py --task=Instinct-Perceptive-Shadowing-G1-Play-v0 --load_run 20260322_115057 --num_envs 1 --checkpoint model_73000.pt 'env.scene.terrain.debug_vis=False' 'env.scene.leg_volume_points.debug_vis=False'
++    ## climb original_size
++
+ 
+     
+     
+diff --git a/scripts/generate_staircase_terrain.py b/scripts/generate_staircase_terrain.py
+index 6b5866c..6b9a7e4 100644
+--- a/scripts/generate_staircase_terrain.py
++++ b/scripts/generate_staircase_terrain.py
+@@ -50,14 +50,14 @@ except ImportError:
+ # Staircase parameters (from create_step_obj.py)
+ # ──────────────────────────────────────────────
+ NUM_STEPS = 4
+-STEP_DEPTH = 0.4*0.74       # Y direction (per step), meters
+-STEP_HEIGHT = 0.15*0.74     # Z direction (per step), meters
+-STEP_WIDTH_X = 1.59*0.74    # X direction (1.73 - 0.14), meters
++STEP_DEPTH = 0.4       # Y direction (per step), meters
++STEP_HEIGHT = 0.155     # Z direction (per step), meters
++STEP_WIDTH_X = 1.59    # X direction (1.73 - 0.14), meters
+ 
+ # Holosoma coordinate: stair bottom face starts at Y=2.0, robot at Y=0
+ # After GMR conversion: robot at Y≈+0.2, stair bottom at Y≈+0.2
+ # => stair bottom Y offset in terrain-local coords:
+-STAIR_START_Y = -0.21    # where the first step begins (terrain-local, +Y side)
++STAIR_START_Y = -0.06  #-0.21  # where the first step begins (terrain-local, +Y side)
+ STAIR_CENTER_X = 1.0    # X coordinate (terrain-local) of the staircase center
+ 
+ # Border parameters (flat ground around the staircase)
+diff --git a/scripts/instinct_rl/play.py b/scripts/instinct_rl/play.py
+index 68ac95b..0e8af1b 100644
+--- a/scripts/instinct_rl/play.py
++++ b/scripts/instinct_rl/play.py
+@@ -39,11 +39,17 @@ parser.add_argument(
+     default=False,
+     help="Whether to assign auxiliary rewards to each of the env's reward term.",
+ )
++
++# virtual obstacles
+ # append Instinct-RL cli arguments
+ cli_args.add_instinct_rl_args(parser)
+ # append AppLauncher cli args
+ AppLauncher.add_app_launcher_args(parser)
+-args_cli = parser.parse_args()
++args_cli, hydra_args = parser.parse_known_args()
++
++# clear out sys.argv for Hydra
++sys.argv = [sys.argv[0]] + hydra_args
++
+ # always enable cameras to record video
+ if args_cli.video:
+     args_cli.enable_cameras = True
+@@ -63,10 +69,11 @@ import torch
+ from instinct_rl.runners import OnPolicyRunner
+ 
+ import isaaclab.utils.math as math_utils
+-from isaaclab.envs import DirectMARLEnv, multi_agent_to_single_agent
++from isaaclab.envs import DirectMARLEnv, DirectMARLEnvCfg, DirectRLEnvCfg, ManagerBasedRLEnvCfg, multi_agent_to_single_agent
+ from isaaclab.utils.dict import print_dict
+ from isaaclab.utils.io import load_yaml
+ from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
++from isaaclab_tasks.utils.hydra import hydra_task_config
+ 
+ # Import extensions to set up environment tasks
+ import instinctlab.tasks  # noqa: F401
+@@ -177,13 +184,19 @@ def _print_policy_action_debug(vec_env: InstinctRlVecEnvWrapper, policy, tag: st
+     for action_idx, joint_name in enumerate(robot_joint_names):
+         print(f"  {action_idx:02d}: {joint_name:30s} {float(action_sample[action_idx]): .6f}")
+ 
+-
+-def main():
++# virtual obstacles
++@hydra_task_config(args_cli.task, "env_cfg_entry_point")
++def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: InstinctRlOnPolicyRunnerCfg | None = None):
+     """Play with Instinct-RL agent."""
+-    # parse configuration
+-    env_cfg = parse_env_cfg(
+-        args_cli.task, device=args_cli.device, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
+-    )
++    # update env_cfg based on cli arguments
++    env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs
++    env_cfg.sim.device = args_cli.device if args_cli.device is not None else env_cfg.sim.device
++    if args_cli.disable_fabric:
++        env_cfg.sim.use_fabric = False
++    else:
++        env_cfg.sim.use_fabric = True
++        
++    # Re-parse agent cfg manually using Instinct-RL's parser as it handles checkpoint paths differently
+     agent_cfg: InstinctRlOnPolicyRunnerCfg = cli_args.parse_instinct_rl_cfg(args_cli.task, args_cli)
+ 
+     # specify directory for logging experiments
+diff --git a/source/instinctlab/instinctlab/tasks/shadowing/perceptive/perceptive_env_cfg.py b/source/instinctlab/instinctlab/tasks/shadowing/perceptive/perceptive_env_cfg.py
+index 41f56b7..d40db33 100644
+--- a/source/instinctlab/instinctlab/tasks/shadowing/perceptive/perceptive_env_cfg.py
++++ b/source/instinctlab/instinctlab/tasks/shadowing/perceptive/perceptive_env_cfg.py
+@@ -195,13 +195,13 @@ class PerceptiveShadowingSceneCfg(InteractiveSceneCfg):
+     leg_volume_points = VolumePointsCfg(
+         prim_path="{ENV_REGEX_NS}/Robot/.*_ankle_roll_link",
+         points_generator=Grid3dPointsGeneratorCfg(
+-            x_min=-0.025,
++            x_min=-0.05,
+             x_max=0.135,
+             x_num=5,
+             y_min=-0.03,
+             y_max=0.03,
+             y_num=5,
+-            z_min=-0.015,
++            z_min=-0.023,
+             z_max=0.0,
+             z_num=1,
+         ),

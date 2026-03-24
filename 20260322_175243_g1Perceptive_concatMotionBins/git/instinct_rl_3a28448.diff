@@ -1,0 +1,41 @@
+--- git status ---
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   instinct_rl/runners/on_policy_runner.py
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/instinct_rl/runners/on_policy_runner.py b/instinct_rl/runners/on_policy_runner.py
+index 6c24b76..ba917e6 100644
+--- a/instinct_rl/runners/on_policy_runner.py
++++ b/instinct_rl/runners/on_policy_runner.py
+@@ -101,6 +101,7 @@ class OnPolicyRunner:
+         self.log_dir = log_dir
+         self.writer = None
+         self.tot_timesteps = 0
++        self.tot_episodes = 0 #episode
+         self.tot_time = 0
+         self.current_learning_iteration = 0
+         self.log_interval = self.cfg.get("log_interval", 1)
+@@ -167,6 +168,7 @@ class OnPolicyRunner:
+                         cur_reward_sum += rewards
+                         cur_episode_length += 1
+                         new_ids = (dones > 0).nonzero(as_tuple=False)[:, 0]
++                        self.tot_episodes += len(new_ids) #episode
+                         for i in range(self.env.num_rewards):
+                             rframebuffer[i].extend(rewards[dones < 1][:, i].cpu().numpy().tolist())
+                             rewbuffer[i].extend(cur_reward_sum[new_ids][:, i].cpu().numpy().tolist())
+@@ -392,6 +394,7 @@ class OnPolicyRunner:
+         log_string += ep_string
+         log_string += (
+             f"""{'-' * width}\n"""
++            f"""{'累计完成 Episode 总数:':>{pad}} {self.tot_episodes}\n""" #episode
+             f"""{'Total timesteps:':>{pad}} {self.tot_timesteps}\n"""
+             f"""{'Iteration time:':>{pad}} {iteration_time:.2f}s\n"""
+             f"""{'Total time:':>{pad}} {self.tot_time:.2f}s\n"""
