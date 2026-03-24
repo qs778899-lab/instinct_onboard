@@ -105,10 +105,12 @@ class OnboardAgent(ABC):
         for obs_name, obs_config in self.cfg["observations"]["policy"].items():
             if (
                 obs_name == "concatenate_terms"
+                or obs_name == "concatenate_dim"
                 or obs_name == "enable_corruption"
                 or obs_name == "history_length"
                 or obs_name == "flatten_history_dim"
                 or obs_config is None
+                or not isinstance(obs_config, dict)
             ):
                 continue
             obs_func: str = obs_config["func"].split(":")[-1]  # get the function name from the config

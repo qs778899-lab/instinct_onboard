@@ -120,7 +120,7 @@ Example Usage:
 
 
     # test01: climb
-    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/ --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard
+    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard
   
 
 
@@ -265,7 +265,7 @@ class G1TrackingNode(UnitreeRsCameraNode):
             if self.joy_stick_data.up:
                 self.get_logger().info("up button pressed, switching to tracking agent.")
                 self.current_agent_name = "tracking"
-                self.available_agents[self.current_agent_name].reset("diveroll4-ziwen-0-retargeted.npz")
+                self.available_agents[self.current_agent_name].reset("stairs027_retargeted.npz")
             elif self.joy_stick_data.down:
                 self.get_logger().info("down button pressed, switching to tracking agent.")
                 self.current_agent_name = "tracking"
