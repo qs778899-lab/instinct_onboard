@@ -118,6 +118,12 @@ Example Usage:
     ROS topic频率不能随意修改，高频会导致机器人高频抖动
     出现joint max error之类问题，需要将吊龙架调整到合适高度，是机器人的位姿接近目标初始位姿
 
+
+    # test01: climb
+    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/ --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard
+  
+
+
     
     Basic usage with required arguments:
         python g1_perceptive_track.py --logdir /path/to/tracking/model --motion_dir /path/to/motions
