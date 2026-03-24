@@ -7,8 +7,9 @@ import numpy as np
 import rclpy
 import yaml
 from geometry_msgs.msg import TransformStamped
-from sensor_msgs.msg import JointState
+from sensor_msgs.msg import JointState, Image
 from tf2_ros import TransformBroadcaster
+import ros2_numpy as rnp
 
 from instinct_onboard.agents.base import ColdStartAgent
 from instinct_onboard.agents.parkour_agent import ParkourStandAgent
@@ -120,13 +121,15 @@ Example Usage:
 
 
     # test01: climb
-    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard
+    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard --depth_vis
   
-
-
+    ros2 bag record /debug/depth_image /debug/raw_depth_image 
+    python scripts/extract_bag_images.py rosbag2_2026_03_24-17_45_38 -o ./extracted_images
     
-    Basic usage with required arguments:
-        python g1_perceptive_track.py --logdir /path/to/tracking/model --motion_dir /path/to/motions
+    
+    
+    Test mode with required arguments :
+        python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard --depth_vis --nodryrun
 
     With walk agent:
         python g1_perceptive_track.py \\
@@ -253,6 +256,35 @@ class G1TrackingNode(UnitreeRsCameraNode):
             #修改walk
             if isinstance(self.available_agents[self.current_agent_name], ParkourStandAgent):
                 self.refresh_rs_data()
+            else:
+                self.refresh_rs_data()
+
+            # --- ADDED: Publish depth images even in walk mode ---
+            if "tracking" in self.available_agents and getattr(self.available_agents["tracking"], "depth_vis", False):
+                try:
+                    # Publish raw depth image
+                    raw_depth_data = self.rs_depth_data
+                    if raw_depth_data is not None and isinstance(raw_depth_data, np.ndarray):
+                        raw_depth_msg_data = np.asanyarray(raw_depth_data * 1000, dtype=np.uint16)
+                        raw_depth_msg = rnp.msgify(Image, raw_depth_msg_data, encoding="16UC1")
+                        raw_depth_msg.header.stamp = self.get_clock().now().to_msg()
+                        raw_depth_msg.header.frame_id = "realsense_depth_link"
+                        self.available_agents["tracking"].debug_raw_depth_publisher.publish(raw_depth_msg)
+
+                        # Process and publish the low-res depth image
+                        processed_img = self.available_agents["tracking"]._get_visualizable_image_obs()
+                        if processed_img is not None:
+                            depth_image_msg_data = np.asanyarray(
+                                processed_img * 255 * 2,
+                                dtype=np.uint16,
+                            )
+                            depth_image_msg = rnp.msgify(Image, depth_image_msg_data, encoding="16UC1")
+                            depth_image_msg.header.stamp = raw_depth_msg.header.stamp
+                            depth_image_msg.header.frame_id = "realsense_depth_link"
+                            self.available_agents["tracking"].debug_depth_publisher.publish(depth_image_msg)
+                except Exception as e:
+                    self.get_logger().error(f"Error publishing depth in walk mode: {e}")
+            # --------------------------------------------------
 
             action, done = self.available_agents[self.current_agent_name].step()
             self.send_action(

@@ -52,8 +52,10 @@ class ParkourAgent(OnboardAgent):
         self.depth_vis = depth_vis
         if self.depth_vis:
             self.debug_depth_publisher = self.ros_node.create_publisher(Image, "/debug/depth_image", 10)
+            self.debug_raw_depth_publisher = self.ros_node.create_publisher(Image, "/debug/raw_depth_image", 10)
         else:
             self.debug_depth_publisher = None
+            self.debug_raw_depth_publisher = None
         self.pointcloud_vis = pointcloud_vis
         if self.pointcloud_vis:
             self.debug_pointcloud_publisher = self.ros_node.create_publisher(PointCloud2, "/debug/pointcloud", 10)
@@ -201,6 +203,19 @@ class ParkourAgent(OnboardAgent):
             depth_image_msg.header.stamp = self.ros_node.get_clock().now().to_msg()
             depth_image_msg.header.frame_id = "realsense_depth_link"
             self.debug_depth_publisher.publish(depth_image_msg)
+
+            #记录 Publish raw depth image
+            raw_depth_data = self.ros_node.rs_depth_data
+            if raw_depth_data is not None and isinstance(raw_depth_data, np.ndarray):
+                try:
+                    raw_depth_msg_data = np.asanyarray(raw_depth_data * 1000, dtype=np.uint16)
+                    raw_depth_msg = rnp.msgify(Image, raw_depth_msg_data, encoding="16UC1")
+                    raw_depth_msg.header.stamp = depth_image_msg.header.stamp
+                    raw_depth_msg.header.frame_id = "realsense_depth_link"
+                    self.debug_raw_depth_publisher.publish(raw_depth_msg)
+                except Exception as e:
+                    print(f"Error publishing raw depth image in parkour agent: {e}")
+                    
         if self.debug_pointcloud_publisher is not None:
             pointcloud_msg = self.ros_node.depth_image_to_pointcloud_msg(
                 depth_obs[0, -1].reshape(self.depth_height, self.depth_width) * self.depth_range[1]
