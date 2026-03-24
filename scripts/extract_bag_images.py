@@ -81,6 +81,28 @@ def extract_images_from_bag(bag_path, output_dir):
                 cv2.imwrite(filename, img_array)
                 count_processed += 1
                 
+            # ---------------- ADDED: Normalize and save an 8-bit viewable version ----------------
+            if msg.encoding == '16UC1':
+                # Convert 16-bit to 8-bit for easy viewing
+                # Normalize values to 0-255 based on the min/max in the image
+                if img_array.max() > 0:
+                    viewable_img = cv2.normalize(img_array, None, 0, 255, cv2.NORM_MINMAX)
+                else:
+                    viewable_img = np.zeros_like(img_array, dtype=np.uint8)
+                viewable_img = viewable_img.astype(np.uint8)
+                
+                # Apply colormap (JET is commonly used for depth maps: red is near, blue is far or vice versa depending on depth setup)
+                # Or just keep it grayscale
+                viewable_img_colored = cv2.applyColorMap(viewable_img, cv2.COLORMAP_JET)
+                
+                viewable_dir = os.path.join(output_dir, "viewable_depth")
+                os.makedirs(viewable_dir, exist_ok=True)
+                
+                prefix = "raw" if topic == '/debug/raw_depth_image' else "proc"
+                viewable_filename = os.path.join(viewable_dir, f"{prefix}_{timestamp_sec:.6f}.png")
+                cv2.imwrite(viewable_filename, viewable_img_colored)
+            # -------------------------------------------------------------------------------------
+
         else:
             print(f"Warning: Unexpected encoding '{msg.encoding}' for topic {topic}")
 
@@ -90,9 +112,27 @@ def extract_images_from_bag(bag_path, output_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Extract depth images from a ROS 2 bag file.')
-    parser.add_argument('bag_file', help='Path to the ROS 2 bag directory (e.g., rosbag2_2026_03_24-17_45_38)')
-    parser.add_argument('--output', '-o', default='./extracted_images', help='Output directory for extracted images')
+    # Instead of full path, just take the bag folder name and assume it's in rosbag_images
+    parser.add_argument('bag_name', help='Name of the bag folder inside rosbag_images (e.g. bag_20260324_203015)')
     
     args = parser.parse_args()
     
-    extract_images_from_bag(args.bag_file, args.output)
+    # Base directory for the script (assumes it's run from instinct_onboard or one level down)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    
+    # Construct input path
+    bag_path = os.path.join(project_root, "rosbag_images", args.bag_name)
+    if not os.path.exists(bag_path):
+        # Fallback in case user provides full path anyway
+        if os.path.exists(args.bag_name):
+            bag_path = args.bag_name
+            args.bag_name = os.path.basename(os.path.normpath(args.bag_name))
+        else:
+            print(f"Error: Could not find bag at {bag_path}")
+            exit(1)
+            
+    # Construct output path
+    output_dir = os.path.join(project_root, "rosbag_viewable_images", args.bag_name)
+    
+    extract_images_from_bag(bag_path, output_dir)

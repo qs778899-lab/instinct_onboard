@@ -123,8 +123,8 @@ Example Usage:
     # test01: climb
     python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard --depth_vis
   
-    ros2 bag record /debug/depth_image /debug/raw_depth_image 
-    python scripts/extract_bag_images.py rosbag2_2026_03_24-17_45_38 -o ./extracted_images
+    ros2 bag record -o ./rosbag_images/bag_$(date +%Y%m%d_%H%M%S) /debug/depth_image /debug/raw_depth_image /lowstate /lowcmd /wirelesscontroller 
+    python scripts/extract_bag_images.py bag_20260324_204032
     
     
     
@@ -408,16 +408,27 @@ def main(args):
     if args.walk_logdir is not None:
 
         #修改walk
-        if "stand_onboard" in args.walk_logdir or "parkour" in args.walk_logdir:
-            walk_agent = ParkourStandAgent(
-                logdir=args.walk_logdir,
-                ros_node=node,
-            )
-        else:
-            walk_agent = WalkAgent(
-                logdir=args.walk_logdir,
-                ros_node=node,
-            )
+        # if "stand_onboard" in args.walk_logdir or "parkour" in args.walk_logdir:
+        #     walk_agent = ParkourStandAgent(
+        #         logdir=args.walk_logdir,
+        #         ros_node=node,
+        #     )
+        # else:
+        #     walk_agent = WalkAgent(
+        #         logdir=args.walk_logdir,
+        #         ros_node=node,
+        #     )
+
+        # 如果你想强制使用 ParkourStandAgent（无论路径怎么写），可以直接实例化它：
+        # 但我们仍然保留路径判断来兼容不同模型。
+        # 如果要求“改写成第二种方式（站立不动）的逻辑”，那意味着当用户传入 walk_logdir 时，
+        # 我们默认认为用户需要的是站立（ParkourStandAgent）而不是原地乱踏步的纯 WalkAgent。
+        # 这里为了确保所有的 walk 都使用站立模型，直接替换分支逻辑：
+        
+        walk_agent = ParkourStandAgent(
+            logdir=args.walk_logdir,
+            ros_node=node,
+        )
 
         cold_start_agent = ColdStartAgent(
             startup_step_size=args.startup_step_size,

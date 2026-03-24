@@ -31,6 +31,10 @@
 *.out
 *.app
 
+# images
+rosbag_images/
+rosbag_viewable_images/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
