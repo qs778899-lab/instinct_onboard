@@ -125,7 +125,7 @@ Example Usage:
 
 
     # test01: climb
-    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard --record_depth --record_depth_fps 10
+    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard --record_depth --record_depth_fps 20
   
     
     
