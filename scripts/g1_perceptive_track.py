@@ -1,7 +1,9 @@
 import os
 import queue
+import subprocess
 import sys
 import time
+from datetime import datetime
 
 import numpy as np
 import rclpy
@@ -18,6 +20,7 @@ from instinct_onboard.agents.walk_agent import WalkAgent
 from instinct_onboard.ros_nodes.realsense import UnitreeRsCameraNode
 
 MAIN_LOOP_FREQUENCY_CHECK_INTERVAL = 500
+DEFAULT_RECORD_DEPTH_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ros_depth_images"))
 
 """
 G1 Perceptive Tracking Node
@@ -118,18 +121,17 @@ Example Usage:
     部署注意事项：
     ROS topic频率不能随意修改，高频会导致机器人高频抖动
     出现joint max error之类问题，需要将吊龙架调整到合适高度，是机器人的位姿接近目标初始位姿
+    不能随机在mainloop中增加功能，特别是增加新ROS topic和耗时的处理，这会阻塞主进程，影响 ros2 topic hz /lowcmd 的频率
 
 
     # test01: climb
-    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard --depth_vis
+    python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --nodryrun  --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard --record_depth --record_depth_fps 10
   
-    ros2 bag record -o ./rosbag_images/bag_$(date +%Y%m%d_%H%M%S) /debug/depth_image /debug/raw_depth_image
-    python scripts/extract_bag_images.py bag_20260324_223017
     
     
     
     Test mode with required arguments :
-        python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard --depth_vis --nodryrun
+        python scripts/g1_perceptive_track.py --logdir /home/unitree/yixuan/instinct_onboard/20260322_175243_g1Perceptive_concatMotionBins --motion_dir /home/unitree/yixuan/instinct_onboard/motion_data_01/stairs --walk_logdir  /home/unitree/yixuan/instinct_onboard/hiking-in-the-wild_Data-Model/checkpoints/stand_onboard --nodryrun
 
     With walk agent:
         python g1_perceptive_track.py \\
@@ -249,43 +251,12 @@ class G1TrackingNode(UnitreeRsCameraNode):
                 if "walk" in self.available_agents.keys():
                     self.get_logger().warn("up button pressed, but there is a walk agent registered. ignored")
 
-        #目前没有传入walk agent的模型文件，暂不考虑
-        #! self.current_agent_name = "tracking"却在这个条件里才有
+
+        #! self.current_agent_name = "tracking"却在这个条件（进入 walk agent模式）里才有
         elif self.current_agent_name == "walk":
 
-            #修改walk
-            if isinstance(self.available_agents[self.current_agent_name], ParkourStandAgent):
-                self.refresh_rs_data()
-            else:
-                self.refresh_rs_data()
-
-            #记录
-            # --- ADDED: Publish depth images even in walk mode ---
-            if "tracking" in self.available_agents and getattr(self.available_agents["tracking"], "depth_vis", False):
-                try:
-                    # Publish raw depth image
-                    raw_depth_data = self.rs_depth_data
-                    if raw_depth_data is not None and isinstance(raw_depth_data, np.ndarray):
-                        raw_depth_msg_data = np.asanyarray(raw_depth_data * 1000, dtype=np.uint16)
-                        raw_depth_msg = rnp.msgify(Image, raw_depth_msg_data, encoding="16UC1")
-                        raw_depth_msg.header.stamp = self.get_clock().now().to_msg()
-                        raw_depth_msg.header.frame_id = "realsense_depth_link"
-                        self.available_agents["tracking"].debug_raw_depth_publisher.publish(raw_depth_msg)
-
-                        # Process and publish the low-res depth image
-                        processed_img = self.available_agents["tracking"]._get_visualizable_image_obs()
-                        if processed_img is not None:
-                            depth_image_msg_data = np.asanyarray(
-                                processed_img * 255 * 2,
-                                dtype=np.uint16,
-                            )
-                            depth_image_msg = rnp.msgify(Image, depth_image_msg_data, encoding="16UC1")
-                            depth_image_msg.header.stamp = raw_depth_msg.header.stamp
-                            depth_image_msg.header.frame_id = "realsense_depth_link"
-                            self.available_agents["tracking"].debug_depth_publisher.publish(depth_image_msg)
-                except Exception as e:
-                    self.get_logger().error(f"Error publishing depth in walk mode: {e}")
-            # --------------------------------------------------
+            #记录深度图像
+            self.refresh_rs_data()
 
             action, done = self.available_agents[self.current_agent_name].step()
             self.send_action(
@@ -385,8 +356,64 @@ class G1TrackingNode(UnitreeRsCameraNode):
         self.tf_broadcaster.sendTransform(t)
 
 
+def create_depth_record_run_dir(base_dir: str) -> str:
+    os.makedirs(base_dir, exist_ok=True)
+    run_name = datetime.now().strftime("run_%Y%m%d_%H%M%S")
+    run_dir = os.path.join(base_dir, run_name)
+    suffix = 1
+    while os.path.exists(run_dir):
+        run_dir = os.path.join(base_dir, f"{run_name}_{suffix:02d}")
+        suffix += 1
+    os.makedirs(run_dir, exist_ok=False)
+    return run_dir
+
+
+def launch_depth_recorder(args, node: G1TrackingNode) -> tuple[subprocess.Popen, str]:
+    if not getattr(node, "camera_individual_process", False):
+        raise RuntimeError("Depth recorder requires camera_individual_process=True.")
+
+    run_dir = create_depth_record_run_dir(args.record_depth_dir)
+    recorder_script = os.path.join(os.path.dirname(__file__), "depth_recorder.py")
+    command = [
+        sys.executable,
+        recorder_script,
+        "--shm-name",
+        node.rs_shared_memory.name,
+        "--logdir",
+        args.logdir,
+        "--width",
+        str(node.rs_resolution[0]),
+        "--height",
+        str(node.rs_resolution[1]),
+        "--output-dir",
+        run_dir,
+        "--save-fps",
+        str(args.record_depth_fps),
+    ]
+    process = subprocess.Popen(command)
+    return process, run_dir
+
+
+def stop_depth_recorder(process: subprocess.Popen | None):
+    if process is None or process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=3.0)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=3.0)
+
+
 def main(args):
     rclpy.init()
+
+    if args.nodryrun and args.depth_vis:
+        print("Real robot mode detected: disabling --depth_vis. Use --record_depth instead.", flush=True)
+        args.depth_vis = False
+    if args.nodryrun and args.pointcloud_vis:
+        print("Real robot mode detected: disabling --pointcloud_vis to protect control timing.", flush=True)
+        args.pointcloud_vis = False
 
     # 创建G1TrackingNode实例，初始化RealSense相机
     node = G1TrackingNode(
@@ -450,13 +477,22 @@ def main(args):
     node.register_agent("cold_start", cold_start_agent)
     node.register_agent("tracking", tracking_agent)
 
-    node.start_ros_handlers()
-    node.get_logger().info("G1TrackingNode is ready to run.")
+    #记录深度图像
+    depth_recorder_process = None
     try:
+        if args.record_depth:
+            depth_recorder_process, run_dir = launch_depth_recorder(args, node)
+            node.get_logger().info(f"Depth recorder started. Saving images under: {run_dir}")
+
+        node.start_ros_handlers()
+        node.get_logger().info("G1TrackingNode is ready to run.")
         rclpy.spin(node) #死循环，定时触发 main_loop_callback
     except KeyboardInterrupt:
         print("Keyboard interrupt received, shutting down...")
     finally:
+        #记录深度图像
+        stop_depth_recorder(depth_recorder_process)
+        
         node.destroy_node()
         rclpy.shutdown()
         print("Node shutdown complete.")
@@ -523,6 +559,24 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
         help="Enable debug mode (default: False)",
+    )
+    parser.add_argument(
+        "--record_depth",
+        action="store_true",
+        default=False,
+        help="Record raw and processed depth images in a separate process.",
+    )
+    parser.add_argument(
+        "--record_depth_dir",
+        type=str,
+        default=DEFAULT_RECORD_DEPTH_ROOT,
+        help="Base directory used to create a new per-run folder under ros_depth_images.",
+    )
+    parser.add_argument(
+        "--record_depth_fps",
+        type=float,
+        default=10.0,
+        help="Depth recorder save frequency. Set <=0 to save every fresh frame.",
     )
 
     args = parser.parse_args()

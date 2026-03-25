@@ -36,6 +36,7 @@ rosbag_images/
 rosbag_viewable_images/
 draft/rosbag_images/
 draft/rosbag_viewable_images/
+ros_depth_images/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
