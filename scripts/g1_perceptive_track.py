@@ -259,6 +259,7 @@ class G1TrackingNode(UnitreeRsCameraNode):
             else:
                 self.refresh_rs_data()
 
+            #记录
             # --- ADDED: Publish depth images even in walk mode ---
             if "tracking" in self.available_agents and getattr(self.available_agents["tracking"], "depth_vis", False):
                 try:

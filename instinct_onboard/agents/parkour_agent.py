@@ -205,16 +205,16 @@ class ParkourAgent(OnboardAgent):
             self.debug_depth_publisher.publish(depth_image_msg)
 
             #记录 Publish raw depth image
-            raw_depth_data = self.ros_node.rs_depth_data
-            if raw_depth_data is not None and isinstance(raw_depth_data, np.ndarray):
-                try:
-                    raw_depth_msg_data = np.asanyarray(raw_depth_data * 1000, dtype=np.uint16)
-                    raw_depth_msg = rnp.msgify(Image, raw_depth_msg_data, encoding="16UC1")
-                    raw_depth_msg.header.stamp = depth_image_msg.header.stamp
-                    raw_depth_msg.header.frame_id = "realsense_depth_link"
-                    self.debug_raw_depth_publisher.publish(raw_depth_msg)
-                except Exception as e:
-                    print(f"Error publishing raw depth image in parkour agent: {e}")
+            # raw_depth_data = self.ros_node.rs_depth_data
+            # if raw_depth_data is not None and isinstance(raw_depth_data, np.ndarray):
+            #     try:
+            #         raw_depth_msg_data = np.asanyarray(raw_depth_data * 1000, dtype=np.uint16)
+            #         raw_depth_msg = rnp.msgify(Image, raw_depth_msg_data, encoding="16UC1")
+            #         raw_depth_msg.header.stamp = depth_image_msg.header.stamp
+            #         raw_depth_msg.header.frame_id = "realsense_depth_link"
+            #         self.debug_raw_depth_publisher.publish(raw_depth_msg)
+            #     except Exception as e:
+            #         print(f"Error publishing raw depth image in parkour agent: {e}")
                     
         if self.debug_pointcloud_publisher is not None:
             pointcloud_msg = self.ros_node.depth_image_to_pointcloud_msg(
