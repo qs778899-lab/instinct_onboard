@@ -121,3 +121,71 @@ pip install --extra-index-url https://aiinfra.pkgs.visualstudio.com/PublicPackag
     补充安装指令：
     pip install PyYAML
     source /opt/ros/humble/setup.bash && python3 -c "import rclpy; import yaml; from geometry_msgs.msg import TransformStamped; print('Success')"
+
+
+## Policy observation
+
+### 各 observation 参数的具体含义
+
+- `joint_pos_ref`（未来参考关节位置）  
+  来自参考动作（motion reference）未来若干帧的关节角目标
+- `joint_vel_ref`（未来参考关节速度）  
+  来自参考动作未来若干帧的关节角速度目标
+- `position_ref`（未来参考位移，base frame）  
+  未来参考根部位置相对当前参考根部位置的位移，且转换到基坐标系
+- `rotation_ref`（未来参考旋转，tannorm）  
+  未来参考根部姿态相对当前机器人姿态的旋转误差（tannorm 表达），表示“机身朝向该如何变化”。
+- `depth_image`（视觉深度图）  
+  实时深度图经过裁剪、缩放、归一化后的结果，用于感知前方地形/障碍。
+- `projected_gravity`  
+  重力向量在机体坐标系下的投影，反映机身倾斜状态（roll/pitch 姿态信息）。
+  先把“地球重力永远向下”这个方向（`[0, 0, -1]`）作为固定参考，再根据 IMU 测到的机身姿态，把这个方向换算到“机器人自己坐标系”里。输出是 3 个数（x/y/z），表示重力在机身前后、左右、上下方向各占多少。机器人直立时它大约是 `[0, 0, -1]`；机器人前倾时 x 分量会明显变大。
+- `base_ang_vel`  
+  机体角速度（IMU 陀螺仪），反映当前旋转动态。
+- `joint_pos`（相对默认位）  
+  当前关节角减去默认站姿关节角，反映当前关节偏移。
+- `joint_vel`（相对默认速度）  
+  当前关节角速度减去默认速度（一般为 0），反映关节运动状态。
+- `last_action`  
+  上一个控制周期发给电机的动作，给策略提供控制连续性上下文，减少抖动。
+
+### 每部分 size 的具体来源
+
+当前模型配置关键常量：
+- 机器人自由度：`NUM_JOINTS = 29`
+- 参考帧数：`motion_reference.num_frames = 10`
+- 深度图最终分辨率：`resize_shape = (18, 32)`
+- 历史长度：`history_length = 8`（仅对部分 proprio 项生效）
+
+各项维度推导如下（先算原始 shape，再 flatten）：
+
+- `joint_pos_ref` → `_get_joint_pos_ref_command_cmd_obs()`  
+  shape = `(10, 29)`，size = `10 * 29 = 290`
+- `joint_vel_ref` → `_get_joint_vel_ref_command_cmd_obs()`  
+  shape = `(10, 29)`，size = `10 * 29 = 290`
+- `position_ref` → `_get_position_b_ref_command_cmd_obs()`  
+  shape = `(10, 3)`，size = `10 * 3 = 30`
+- `rotation_ref` → `_get_rotation_ref_command_cmd_obs()`  
+  shape = `(10, 6)`，size = `10 * 6 = 60`
+- `depth_image` → `_get_visualizable_image_obs()`  
+  shape = `(18, 32)`，size = `18 * 32 = 576`
+- `projected_gravity` → `_get_projected_gravity_obs()` + history  
+  单帧 `3` 维，history `8` 帧，size = `3 * 8 = 24`
+- `base_ang_vel` → `_get_base_ang_vel_obs()` + history  
+  单帧 `3` 维，history `8` 帧，size = `3 * 8 = 24`
+- `joint_pos` → `_get_joint_pos_rel_obs()` + history  
+  单帧 `29` 维，history `8` 帧，size = `29 * 8 = 232`
+- `joint_vel` → `_get_joint_vel_rel_obs()` + history  
+  单帧 `29` 维，history `8` 帧，size = `29 * 8 = 232`
+- `last_action` → `_get_last_action_obs()` + history  
+  单帧 `29` 维，history `8` 帧，size = `29 * 8 = 232`
+
+完整 observation 总维度：
+
+`290 + 290 + 30 + 60 + 576 + 24 + 24 + 232 + 232 + 232 = 1990`
+
+推理时还会做一步“视觉编码后再拼接”：
+- 先从 `1990` 维中切出 `depth_image` 的 `576` 维
+- 经 depth encoder 输出 `32` 维 depth embedding
+- actor 输入维度变为：`(1990 - 576) + 32 = 1446`
+
