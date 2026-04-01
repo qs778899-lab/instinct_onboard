@@ -187,3 +187,6 @@ pip install --extra-index-url https://aiinfra.pkgs.visualstudio.com/PublicPackag
 - 经 depth encoder 输出 `32` 维 depth embedding
 - actor 输入维度变为：`(1990 - 576) + 32 = 1446`
 
+
+
+
