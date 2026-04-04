@@ -127,14 +127,14 @@ pip install --extra-index-url https://aiinfra.pkgs.visualstudio.com/PublicPackag
 
 ### 各 observation 参数的具体含义
 
-- `joint_pos_ref`（未来参考关节位置）  
-  来自参考动作（motion reference）未来若干帧的关节角目标
+- `joint_pos_ref`（未来参考关节位置，相对默认位）  
+  来自参考动作（motion reference）未来若干帧的关节角，并减去默认站姿关节角（即 `joint_pos_ref - default_joint_pos`）。
 - `joint_vel_ref`（未来参考关节速度）  
   来自参考动作未来若干帧的关节角速度目标
-- `position_ref`（未来参考位移，base frame）  
-  把“当前时刻的参考根部位置”当作零点，计算未来每个参考帧相对这个零点移动了多少（x/y/z）；再把这个位移从世界坐标系转换到机器人基坐标系。
+- `position_ref`（未来参考位移，motion-reference base frame）  
+  把“当前时刻的参考根部位置”当作零点，计算未来每个参考帧相对这个零点移动了多少（x/y/z）；再用当前参考根部姿态做逆旋转，将该位移转换到当前 motion reference 的 base frame（不是机器人实时 base frame）。
 - `rotation_ref`（未来参考旋转，tannorm）  
-  未来参考根部姿态相对当前机器人姿态的旋转误差（tannorm 表达）。tannorm` 把四元数转换成连续的 6 维向量表示（比欧拉角更平滑、对神经网络训练更稳定）。
+  未来参考根部姿态相对当前机器人姿态的旋转误差（tannorm 表达）。`tannorm` 把四元数转换成连续的 6 维向量表示（比欧拉角更平滑、对神经网络训练更稳定）。
 - `depth_image`（深度图）  
 - `projected_gravity`（重力投影向量）
   描述重力方向在机器人基坐标系下的投影分量。利用 IMU 实时获取的四元数，将世界坐标系下的单位重力向量 `[0, 0, -1]` 逆旋转至机体坐标系（本质为坐标系转换），从而得到反映机身倾斜状态的 3 维分量 `[gx, gy, gz]`。
@@ -186,7 +186,5 @@ pip install --extra-index-url https://aiinfra.pkgs.visualstudio.com/PublicPackag
 - 先从 `1990` 维中切出 `depth_image` 的 `576` 维
 - 经 depth encoder 输出 `32` 维 depth embedding
 - actor 输入维度变为：`(1990 - 576) + 32 = 1446`
-
-
 
 
